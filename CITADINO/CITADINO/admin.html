@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Citadino - Tienda</title>
+  <style>
+    body {font-family: Arial, sans-serif; margin: 0; background: #f5f5f5;}
+    header {background: #000; color: #fff; padding: 15px; text-align: center; position: relative;}
+    nav {background: #111; padding: 20px; display: flex; justify-content: center; gap: 30px;}
+    nav a {color: #fff; text-decoration: none; font-size: 1.1rem;}
+    .container {padding: 20px;}
+    .products {display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;}
+    .card {background: #fff; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); text-align: center;}
+    .card img {max-width: 100%; height: 150px; object-fit: cover; border-radius: 10px;}
+    .card button {margin-top: 10px; padding: 8px; background: #000; color: #fff; border: none; border-radius: 5px; cursor: pointer;}
+    footer {background: #000; color: #fff; text-align: center; padding: 40px 20px; font-size: 1.2rem;}
+    footer a {color: #ffd700; margin: 0 10px; text-decoration: none;}
+    footer a:hover {text-decoration: underline;}
+    #admin-modal {display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                  background: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 999;}
+    #admin-content {background: #fff; padding: 20px; border-radius: 10px; max-width: 600px; width: 90%;}
+    #admin-content h3 {margin-top: 0;}
+    #admin-content input {padding: 8px; margin: 5px; width: 90%; border: 1px solid #ccc; border-radius: 5px;}
+    #admin-content button {padding: 8px 12px; margin-top: 10px; background: #000; color: #fff; border: none; border-radius: 5px; cursor: pointer;}
+    .admin-item {display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px solid #eee;}
+    .agotado {opacity: 0.4; position: relative;}
+    .agotado::after {content: "AGOTADO"; position: absolute; top: 10px; left: 0; right: 0; background: red; color: white; font-weight: bold;}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Citadino - Tienda Online</h1>
+    <button style="position:absolute; top:15px; right:20px;" onclick="openAdminModal()">Admin</button>
+  </header>
+
+  <nav>
+    <a href="#gorras">Gorras</a>
+    <a href="#vapers">Vapers</a>
+  </nav>
+
+  <div class="container">
+    <h2 id="gorras">Gorras</h2>
+    <div class="products" id="gorras-list"></div>
+    <h2 id="vapers">Vapers</h2>
+    <div class="products" id="vapers-list"></div>
+  </div>
+
+  <footer>
+    <p>© 2025 Citadino. Todos los derechos reservados.</p>
+    <p>Síguenos en: 
+      <a href="https://www.instagram.com/citadino_cap?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" target="_blank">Instagram</a> |
+      <a href="https://www.tiktok.com/@citadinosv?is_from_webapp=1&sender_device=pc" target="_blank">TikTok</a> |
+      <a href="https://www.facebook.com/CitadinoCap" target="_blank">Facebook</a> |
+      <a href="https://wa.me/573147312196" target="_blank">WhatsApp</a>
+    </p>
+  </footer>
+
+  <!-- MODAL ADMIN -->
+  <div id="admin-modal">
+    <div id="admin-content">
+      <h3>Panel de Administración</h3>
+      <div id="admin-login">
+        <input type="email" id="admin-email" placeholder="Correo admin">
+        <input type="password" id="admin-password" placeholder="Contraseña">
+        <button onclick="adminLogin()">Ingresar</button>
+      </div>
+      <div id="admin-panel" style="display:none;">
+        <h4>Productos (mostrar / marcar agotado)</h4>
+        <div id="admin-items"></div>
+        <button onclick="guardarCambios()">💾 Guardar cambios</button>
+        <button onclick="cerrarAdmin()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- Productos ---
+    const gorras = [
+      {nombre:"Gorra Beige", precio:50000, descripcion:"Clásica gorra beige, ajustable y unisex.", img:"vista/imagenes/0.jpg", visible:true},
+      {nombre:"Gorra Blanca", precio:48000, descripcion:"Diseño minimalista en color blanco, fresca y ligera.", img:"vista/imagenes/9.jpg", visible:true},
+      {nombre:"Gorra Azul", precio:52000, descripcion:"Gorra deportiva azul, ideal para actividades al aire libre.", img:"vista/imagenes/8.jpg", visible:true},
+      {nombre:"Gorra Roja", precio:49000, descripcion:"Gorra llamativa en color rojo, estilo urbano.", img:"vista/imagenes/7.jpg", visible:true},
+      {nombre:"Gorra Gris", precio:55000, descripcion:"Elegante gorra gris combinable con cualquier outfit.", img:"vista/imagenes/6.jpg", visible:true},
+      {nombre:"Gorra Verde", precio:53000, descripcion:"Gorra verde con visera curva, cómoda para el día a día.", img:"vista/imagenes/5.jpg", visible:true},
+      {nombre:"Gorra Amarilla", precio:47000, descripcion:"Gorra vibrante amarilla, estilo casual.", img:"vista/imagenes/4.jpg", visible:true},
+      {nombre:"Gorra Café", precio:51000, descripcion:"Diseño clásico en tono café, material resistente.", img:"vista/imagenes/3.jpg", visible:true},
+      {nombre:"Gorra Rosa", precio:54000, descripcion:"Gorra juvenil en color rosa, ligera y moderna.", img:"vista/imagenes/2.jpg", visible:true},
+      {nombre:"Gorra Morada", precio:56000, descripcion:"Exclusiva gorra morada, estilo fashion urbano.", img:"vista/imagenes/1.jpg", visible:true}
+    ];
+
+    const vapers = [
+      {nombre:"Vaper Frutal", precio:80000, descripcion:"Sabor intenso a frutas tropicales, duración prolongada.", img:"vista/imagenes/25.jpg", visible:true},
+      {nombre:"Vaper Menta", precio:82000, descripcion:"Fresco sabor a menta, sensación refrescante.", img:"vista/imagenes/29.jpg", visible:true},
+      {nombre:"Vaper Tabaco", precio:85000, descripcion:"Auténtico sabor a tabaco clásico, elegante.", img:"vista/imagenes/20.jpg", visible:true},
+      {nombre:"Vaper Cereza", precio:79000, descripcion:"Dulce sabor a cereza, ideal para quienes buscan frutales.", img:"vista/imagenes/21.jpg", visible:true},
+      {nombre:"Vaper Mango", precio:81000, descripcion:"Exótico sabor a mango tropical, muy popular.", img:"vista/imagenes/26.jpg", visible:true},
+      {nombre:"Vaper Uva", precio:83000, descripcion:"Delicioso sabor a uva morada, suave y aromático.", img:"vista/imagenes/22.jpg", visible:true},
+      {nombre:"Vaper Piña", precio:84000, descripcion:"Refrescante sabor a piña, equilibrio entre dulce y ácido.", img:"vista/imagenes/24.jpg", visible:true},
+      {nombre:"Vaper Sandía", precio:86000, descripcion:"Sabor dulce de sandía, refrescante para el verano.", img:"vista/imagenes/28.jpg", visible:true},
+      {nombre:"Vaper Melón", precio:88000, descripcion:"Sabor fresco a melón verde, suave en cada calada.", img:"vista/imagenes/23.jpg", visible:true},
+      {nombre:"Vaper Limón", precio:90000, descripcion:"Ácido y refrescante sabor a limón, explosión cítrica.", img:"vista/imagenes/27.jpg", visible:true}
+    ];
+
+    const gorrasList = document.getElementById('gorras-list');
+    const vapersList = document.getElementById('vapers-list');
+    const adminModal = document.getElementById('admin-modal');
+    const adminItems = document.getElementById('admin-items');
+
+    function renderProducts() {
+      gorrasList.innerHTML = '';
+      vapersList.innerHTML = '';
+      gorras.forEach(p=>{
+        const card=document.createElement('div');
+        card.className='card';
+        if(!p.visible) card.classList.add('agotado');
+        card.innerHTML=`
+          <img src="${p.img}" alt="${p.nombre}">
+          <h3>${p.nombre}</h3>
+          <p>${p.descripcion}</p>
+          <p><strong>$${p.precio.toLocaleString()}</strong></p>
+        `;
+        gorrasList.appendChild(card);
+      });
+      vapers.forEach(p=>{
+        const card=document.createElement('div');
+        card.className='card';
+        if(!p.visible) card.classList.add('agotado');
+        card.innerHTML=`
+          <img src="${p.img}" alt="${p.nombre}">
+          <h3>${p.nombre}</h3>
+          <p>${p.descripcion}</p>
+          <p><strong>$${p.precio.toLocaleString()}</strong></p>
+        `;
+        vapersList.appendChild(card);
+      });
+    }
+
+    function openAdminModal(){ adminModal.style.display='flex'; }
+    function cerrarAdmin(){ adminModal.style.display='none'; }
+
+    function adminLogin(){
+      const email=document.getElementById('admin-email').value;
+      const pass=document.getElementById('admin-password').value;
+      if(email==='admin@citadino.com' && pass==='12345'){
+        document.getElementById('admin-login').style.display='none';
+        document.getElementById('admin-panel').style.display='block';
+        renderAdminList();
+      }else{
+        alert('Credenciales incorrectas');
+      }
+    }
+
+    function renderAdminList(){
+      adminItems.innerHTML='';
+      const all=[...gorras,...vapers];
+      all.forEach((p)=>{
+        const div=document.createElement('div');
+        div.className='admin-item';
+        div.innerHTML=`
+          <span>${p.nombre}</span>
+          <button onclick="toggleVisibility('${p.nombre}')">${p.visible?'Marcar Agotado':'Mostrar'}</button>
+        `;
+        adminItems.appendChild(div);
+      });
+    }
+
+    function toggleVisibility(nombre){
+      const all=[...gorras,...vapers];
+      const producto=all.find(p=>p.nombre===nombre);
+      producto.visible=!producto.visible;
+      renderProducts();
+      renderAdminList();
+    }
+
+    function guardarCambios(){
+      const data = { gorras, vapers };
+      localStorage.setItem('citadinoProductos', JSON.stringify(data));
+      alert('✅ Cambios guardados correctamente');
+    }
+
+    function cargarCambios(){
+      const data = localStorage.getItem('citadinoProductos');
+      if(data){
+        const {gorras: g, vapers: v} = JSON.parse(data);
+        gorras.forEach((p,i)=>gorras[i].visible=g[i].visible);
+        vapers.forEach((p,i)=>vapers[i].visible=v[i].visible);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', ()=>{
+      cargarCambios();
+      renderProducts();
+    });
+  </script>
+  
+</body>
+</html>
